@@ -11,9 +11,8 @@ const MSGS = {
   DELETE_CARD: "DELETE_CARD",
   TOGGLE_ANSWER: "TOGGLE_ANSWER",
   RATE_CARD: "RATE_CARD",
+  EDIT_CARD: "EDIT_CARD", // Neue Nachricht für die Bearbeitungsfunktion
 };
-
-
 
 function view(dispatch, model) {
   return div({ className: "flex flex-col gap-4 items-center" }, [
@@ -43,6 +42,7 @@ function view(dispatch, model) {
 
     div({ className: "flex flex-wrap w-full" }, model.cards.map((card, index) =>
       div({ className: "w-1/3 p-4 border" }, [
+        button({ className: "text-blue-500 float-left", onclick: () => dispatch({ type: MSGS.EDIT_CARD, index }) }, "Bearbeiten"), // Bearbeiten-Button hinzugefügt
         button({ className: "text-red-500 float-right", onclick: () => dispatch({ type: MSGS.DELETE_CARD, index }) }, "Löschen"),
         div({ className: "clear-both" }),
         p({ className: "bg-blue-100 p-2" }, "Frage: " + card.question),
@@ -59,9 +59,6 @@ function view(dispatch, model) {
     )),
   ]);
 }
-
-
-
 
 function update(msg, model) {
   switch (msg.type) {
@@ -99,6 +96,21 @@ function update(msg, model) {
         ...model,
         cards: ratedCards.sort((a, b) => a.rating - b.rating),
       };
+
+    case MSGS.EDIT_CARD: // Bearbeitungsfunktion hinzugefügt
+      const editedCard = { ...model.cards[msg.index] };
+      const newQuestion = prompt("Neue Frage:", editedCard.question);
+      if (newQuestion !== null) {
+        const newAnswer = prompt("Neue Antwort:", editedCard.answer);
+        if (newAnswer !== null) {
+          editedCard.question = newQuestion;
+          editedCard.answer = newAnswer;
+          const editedCards = [...model.cards];
+          editedCards[msg.index] = editedCard;
+          return { ...model, cards: editedCards };
+        }
+      }
+      return model;
 
     default:
       return model;

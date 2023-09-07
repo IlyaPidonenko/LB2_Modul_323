@@ -11,7 +11,7 @@ const MSGS = {
   DELETE_CARD: "DELETE_CARD",
   TOGGLE_ANSWER: "TOGGLE_ANSWER",
   RATE_CARD: "RATE_CARD",
-  EDIT_CARD: "EDIT_CARD", // Neue Nachricht für die Bearbeitungsfunktion
+  EDIT_CARD: "EDIT_CARD",
 };
 
 function view(dispatch, model) {
@@ -51,7 +51,7 @@ function view(dispatch, model) {
         }, card.showAnswer ? "Antwort ausblenden" : "Antwort einblenden"),
         card.showAnswer ? p({ className: "bg-blue-100 p-2" }, "Antwort: " + card.answer) : null,
         card.showAnswer ? div({ className: "mt-2" }, [
-          button({ className: "text-red-500", onclick: () => dispatch({ type: MSGS.RATE_CARD, index, rating: 0 }) }, "Schlecht"),
+          button({ className: "text-red-500", onclick: () => dispatch({ type: MSGS.RATE_CARD, index, rating: -1 }) }, "Schlecht"),
           button({ className: "text-blue-500 ml-2", onclick: () => dispatch({ type: MSGS.RATE_CARD, index, rating: 1 }) }, "Gut"),
           button({ className: "text-green-500 ml-2", onclick: () => dispatch({ type: MSGS.RATE_CARD, index, rating: 2 }) }, "Perfekt"),
         ]) : null,
@@ -91,13 +91,21 @@ function update(msg, model) {
 
     case MSGS.RATE_CARD:
       const ratedCards = [...model.cards];
-      ratedCards[msg.index].rating += msg.rating;
+      if (msg.rating === -1) {
+        ratedCards[msg.index].rating -= 1
+        if (ratedCards[msg.index].rating < 0) {
+          ratedCards[msg.index].rating = 0;
+        }
+      } else {
+        ratedCards[msg.index].rating += msg.rating;
+
+      }
       return {
         ...model,
         cards: ratedCards.sort((a, b) => a.rating - b.rating),
       };
 
-    case MSGS.EDIT_CARD: // Bearbeitungsfunktion hinzugefügt
+    case MSGS.EDIT_CARD:
       const editedCard = { ...model.cards[msg.index] };
       const newQuestion = prompt("Neue Frage:", editedCard.question);
       if (newQuestion !== null) {
